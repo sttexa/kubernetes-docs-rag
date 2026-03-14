@@ -10,6 +10,8 @@ This project focuses on:
 - routing questions across `concepts`, `tasks`, and `reference`
 - serving a simple web UI with a FastAPI backend
 
+![Demo preview](docs/demo-preview.svg)
+
 ## Architecture
 
 ```mermaid
