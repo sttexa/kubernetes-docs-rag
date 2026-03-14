@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kubernetes-docs-rag"
+version = "0.1.0"
+description = "A minimal RAG demo built on Kubernetes official documentation."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "beautifulsoup4>=4.14.3",
+  "fastapi>=0.135.1",
+  "httpx>=0.28.1",
+  "lxml>=6.0.2",
+  "openai>=2.28.0",
+  "pydantic-settings>=2.13.1",
+  "python-dotenv>=1.2.2",
+  "qdrant-client>=1.17.1",
+  "uvicorn[standard]>=0.41.0",
+]
+
+[tool.uv]
+package = false

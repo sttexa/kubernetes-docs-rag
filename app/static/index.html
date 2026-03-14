@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kubernetes Docs RAG</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Kubernetes Official Docs</p>
+        <h1>RAG demo for concepts, tasks, and reference questions</h1>
+        <p class="lede">
+          Ask a Kubernetes question and get an answer grounded in the official docs, with source links.
+        </p>
+      </section>
+      <section class="panel">
+        <form id="ask-form">
+          <label for="question">Question</label>
+          <textarea id="question" name="question" rows="5" placeholder="How does a Deployment manage replica updates?"></textarea>
+          <button type="submit">Ask</button>
+        </form>
+        <div id="result" class="result hidden">
+          <div class="route-row">
+            <span>Routed to</span>
+            <strong id="route"></strong>
+          </div>
+          <article>
+            <h2>Answer</h2>
+            <pre id="answer"></pre>
+          </article>
+          <article>
+            <h2>Sources</h2>
+            <ul id="sources"></ul>
+          </article>
+        </div>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+  </html>
+
