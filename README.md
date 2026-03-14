@@ -77,6 +77,19 @@ uvicorn app.main:app --reload
 
 Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
+### Instant Demo
+
+If you want a fast demo without scraping the full documentation set:
+
+```bash
+cp .env.example .env
+docker compose -f docker/docker-compose.yml up -d
+python -m scripts.index_sample_docs
+uvicorn app.main:app --reload
+```
+
+This uses the committed sample dataset in `data/sample/sample_chunks.jsonl`, so a fresh clone can run immediately.
+
 ### Environment Variables
 
 See `.env.example` for supported configuration:
@@ -184,6 +197,19 @@ uvicorn app.main:app --reload
 ```
 
 然后在浏览器打开 [http://127.0.0.1:8000](http://127.0.0.1:8000)。
+
+### 快速 Demo
+
+如果你想在刚 clone 下来后立刻跑一个最小演示，而不先抓取完整文档，可以直接执行：
+
+```bash
+cp .env.example .env
+docker compose -f docker/docker-compose.yml up -d
+python -m scripts.index_sample_docs
+uvicorn app.main:app --reload
+```
+
+这条路径会使用仓库里已经提交的 `data/sample/sample_chunks.jsonl`，因此新用户拿到项目后可以马上启动一个 demo。
 
 ### 环境变量
 
