@@ -10,6 +10,20 @@ This project focuses on:
 - routing questions across `concepts`, `tasks`, and `reference`
 - serving a simple web UI with a FastAPI backend
 
+## Architecture
+
+```mermaid
+flowchart LR
+    A["Kubernetes Official Docs"] --> B["Scraper"]
+    B --> C["Chunker"]
+    C --> D["Qdrant"]
+    E["User Question"] --> F["FastAPI API"]
+    F --> G["Route + Retrieval"]
+    G --> D
+    G --> H["Demo Summary or LLM Answer"]
+    H --> I["Web UI"]
+```
+
 ## English
 
 ### Features
@@ -20,6 +34,16 @@ This project focuses on:
 - Qdrant-backed vector search
 - Query routing for concept, how-to, and reference questions
 - `demo` mode for local testing without OpenAI quota
+
+### Demo Preview
+
+This repository includes an instant-demo dataset so a fresh clone can start quickly without scraping the full docs corpus first.
+
+Suggested demo questions:
+- `What is a Kubernetes Service?`
+- `What is a ConfigMap?`
+- `How do I install kubectl on macOS?`
+- `What fields are in Deployment spec?`
 
 ### Project Structure
 
@@ -133,6 +157,20 @@ In demo mode:
 - 对问题做 `concepts`、`tasks`、`reference` 分流
 - 通过 FastAPI 和简单网页界面对外提供问答能力
 
+## 架构图
+
+```mermaid
+flowchart LR
+    A["Kubernetes 官方文档"] --> B["抓取器"]
+    B --> C["切块器"]
+    C --> D["Qdrant"]
+    E["用户问题"] --> F["FastAPI API"]
+    F --> G["路由与检索"]
+    G --> D
+    G --> H["本地摘要或 LLM 回答"]
+    H --> I["Web 页面"]
+```
+
 ### 功能特点
 
 - 使用 FastAPI 提供后端接口和最小前端页面
@@ -141,6 +179,16 @@ In demo mode:
 - 使用 Qdrant 做向量检索
 - 支持解释型、操作型、参考型问题分流
 - 提供 `demo` 模式，便于本地无额度时演示
+
+### Demo 预览建议
+
+仓库内已经带有一个可直接运行的小样本数据集，因此 fresh clone 后也可以快速演示。
+
+建议直接测试这些问题：
+- `What is a Kubernetes Service?`
+- `What is a ConfigMap?`
+- `How do I install kubectl on macOS?`
+- `What fields are in Deployment spec?`
 
 ### 目录结构
 
