@@ -1,36 +1,54 @@
-<svg width="1440" height="920" viewBox="0 0 1440 920" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1440" height="920" fill="#F4EFE6"/>
-  <circle cx="170" cy="120" r="210" fill="#D97706" fill-opacity="0.12"/>
-  <circle cx="1270" cy="100" r="180" fill="#0F766E" fill-opacity="0.14"/>
-  <rect x="104" y="86" width="1232" height="748" rx="32" fill="#FFFAF2" stroke="#D8CFC0" stroke-width="2"/>
-  <text x="162" y="170" fill="#0F766E" font-size="22" font-family="Avenir Next, Arial, sans-serif" letter-spacing="6">KUBERNETES OFFICIAL DOCS</text>
-  <text x="160" y="250" fill="#1D2A38" font-size="62" font-family="Georgia, serif" font-weight="700">RAG demo for</text>
-  <text x="160" y="320" fill="#1D2A38" font-size="62" font-family="Georgia, serif" font-weight="700">concepts, tasks,</text>
-  <text x="160" y="390" fill="#1D2A38" font-size="62" font-family="Georgia, serif" font-weight="700">and reference</text>
-  <text x="160" y="455" fill="#324152" font-size="26" font-family="Georgia, serif">Ask a Kubernetes question and get an answer grounded</text>
-  <text x="160" y="492" fill="#324152" font-size="26" font-family="Georgia, serif">in the official docs, with source links.</text>
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preview of the Kubernetes Docs RAG demo UI">
+  <rect width="1440" height="900" fill="#F4EFE6"/>
+  <circle cx="180" cy="110" r="220" fill="#D97706" fill-opacity="0.12"/>
+  <circle cx="1280" cy="120" r="190" fill="#0F766E" fill-opacity="0.13"/>
 
-  <rect x="160" y="560" width="1120" height="210" rx="24" fill="white" stroke="#D8CFC0" stroke-width="2"/>
-  <text x="194" y="612" fill="#1D2A38" font-size="24" font-family="Avenir Next, Arial, sans-serif" font-weight="600">Question</text>
-  <rect x="194" y="632" width="780" height="82" rx="18" fill="#FFFDF9" stroke="#D8CFC0" stroke-width="2"/>
-  <text x="220" y="681" fill="#5E6B78" font-size="24" font-family="Georgia, serif">What is a Kubernetes Service?</text>
-  <rect x="1002" y="632" width="206" height="66" rx="33" fill="url(#paint0_linear)"/>
-  <text x="1074" y="674" fill="white" font-size="24" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Ask</text>
+  <rect x="92" y="72" width="1256" height="756" rx="34" fill="#FFFAF2" stroke="#D8CFC0" stroke-width="2"/>
 
-  <rect x="760" y="146" width="480" height="344" rx="28" fill="#FFFDF9" stroke="#D8CFC0" stroke-width="2"/>
-  <text x="798" y="198" fill="#0F766E" font-size="22" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Routed to concepts</text>
-  <text x="798" y="246" fill="#1D2A38" font-size="30" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Answer</text>
-  <text x="798" y="288" fill="#324152" font-size="22" font-family="Georgia, serif">A Service exposes an application running</text>
-  <text x="798" y="320" fill="#324152" font-size="22" font-family="Georgia, serif">on one or more Pods through a stable</text>
-  <text x="798" y="352" fill="#324152" font-size="22" font-family="Georgia, serif">network identity.</text>
-  <text x="798" y="408" fill="#1D2A38" font-size="28" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Sources</text>
-  <circle cx="806" cy="446" r="5" fill="#0F766E"/>
-  <text x="824" y="453" fill="#0F766E" font-size="22" font-family="Avenir Next, Arial, sans-serif">Service</text>
-  <text x="910" y="453" fill="#6A7683" font-size="20" font-family="Georgia, serif">(concepts)</text>
-  <text x="824" y="484" fill="#324152" font-size="19" font-family="Georgia, serif">kubernetes.io/docs/concepts/services-networking/service/</text>
+  <text x="150" y="154" fill="#0F766E" font-size="20" font-family="Avenir Next, Arial, sans-serif" letter-spacing="5">KUBERNETES OFFICIAL DOCS</text>
+
+  <text x="148" y="238" fill="#1D2A38" font-size="56" font-family="Georgia, serif" font-weight="700">
+    <tspan x="148" dy="0">RAG demo for</tspan>
+    <tspan x="148" dy="64">concepts, tasks,</tspan>
+    <tspan x="148" dy="64">and reference</tspan>
+  </text>
+
+  <text x="150" y="444" fill="#324152" font-size="25" font-family="Georgia, serif">
+    <tspan x="150" dy="0">Ask a Kubernetes question and get an answer grounded in the</tspan>
+    <tspan x="150" dy="36">official documentation, with routed retrieval and source links.</tspan>
+  </text>
+
+  <rect x="150" y="540" width="1140" height="236" rx="28" fill="#FFFDF9" stroke="#D8CFC0" stroke-width="2"/>
+  <text x="186" y="594" fill="#1D2A38" font-size="23" font-family="Avenir Next, Arial, sans-serif" font-weight="600">Question</text>
+  <rect x="186" y="614" width="700" height="86" rx="18" fill="white" stroke="#D8CFC0" stroke-width="2"/>
+  <text x="214" y="665" fill="#5E6B78" font-size="24" font-family="Georgia, serif">What is a Kubernetes Service?</text>
+
+  <rect x="914" y="614" width="214" height="68" rx="34" fill="url(#paint0_linear)"/>
+  <text x="989" y="656" fill="white" font-size="23" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Ask</text>
+
+  <rect x="936" y="146" width="314" height="314" rx="26" fill="#FFFDF9" stroke="#D8CFC0" stroke-width="2"/>
+  <text x="968" y="194" fill="#0F766E" font-size="19" font-family="Avenir Next, Arial, sans-serif" font-weight="700">ROUTED TO CONCEPTS</text>
+  <text x="968" y="236" fill="#1D2A38" font-size="28" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Answer</text>
+  <text x="968" y="274" fill="#324152" font-size="20" font-family="Georgia, serif">
+    <tspan x="968" dy="0">A Service exposes an application</tspan>
+    <tspan x="968" dy="30">running on one or more Pods</tspan>
+    <tspan x="968" dy="30">through a stable network identity.</tspan>
+  </text>
+
+  <text x="968" y="388" fill="#1D2A38" font-size="26" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Source</text>
+  <circle cx="976" cy="424" r="5" fill="#0F766E"/>
+  <text x="992" y="430" fill="#0F766E" font-size="20" font-family="Avenir Next, Arial, sans-serif">Service</text>
+  <text x="968" y="462" fill="#324152" font-size="16" font-family="Georgia, serif">
+    <tspan x="968" dy="0">kubernetes.io/docs/concepts/</tspan>
+    <tspan x="968" dy="24">services-networking/service/</tspan>
+  </text>
+
+  <rect x="150" y="714" width="980" height="34" rx="17" fill="#F3ECE1"/>
+  <rect x="150" y="714" width="426" height="34" rx="17" fill="#0F766E" fill-opacity="0.18"/>
+  <text x="168" y="736" fill="#0F766E" font-size="16" font-family="Avenir Next, Arial, sans-serif" font-weight="700">Demo mode • local retrieval • source-linked answer</text>
 
   <defs>
-    <linearGradient id="paint0_linear" x1="1002" y1="632" x2="1208" y2="698" gradientUnits="userSpaceOnUse">
+    <linearGradient id="paint0_linear" x1="914" y1="614" x2="1128" y2="682" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0F766E"/>
       <stop offset="1" stop-color="#D97706"/>
     </linearGradient>
