@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl
 
 
 DocType = Literal["concepts", "tasks", "reference"]
@@ -27,7 +27,7 @@ class SourceItem(BaseModel):
     doc_type: DocType
     excerpt: str
     score: float | None = None
-    heading_path: list[str] = []
+    heading_path: list[str] = Field(default_factory=list)
 
 
 class AskResponse(BaseModel):

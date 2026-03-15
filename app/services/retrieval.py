@@ -1,20 +1,31 @@
 from __future__ import annotations
 
-import re
 import json
+import logging
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
-from openai import OpenAI
-from qdrant_client import QdrantClient
-from qdrant_client.http import models as rest
+try:
+    from openai import OpenAI
+except ImportError:  # pragma: no cover - optional dependency in demo/tests
+    OpenAI = None
+
+try:
+    from qdrant_client import QdrantClient
+    from qdrant_client.http import models as rest
+except ImportError:  # pragma: no cover - optional dependency in demo/tests
+    QdrantClient = None
+    rest = None
 
 from app.config import Settings
 from app.models import ChunkRecord, DocType, SourceItem
 from app.services.demo_mode import demo_answer, demo_embed
 
+logger = logging.getLogger(__name__)
 DOC_TYPES: tuple[DocType, ...] = ("concepts", "tasks", "reference")
 QUERY_EXPANSIONS = {
     "expose": ["service", "nodeport", "loadbalancer", "ingress", "external"],
@@ -59,6 +70,12 @@ GENERIC_QUERY_TOKENS = {"fields", "field", "what", "how", "install", "configure"
 class RoutePlan:
     primary: DocType
     weights: dict[DocType, float]
+
+
+@dataclass(frozen=True)
+class SearchHit:
+    score: float
+    payload: dict[str, Any]
 
 
 def _tokenize(text: str) -> set[str]:
@@ -154,6 +171,13 @@ def _comparison_terms(question: str) -> list[str]:
     return []
 
 
+def _excerpt(text: str, limit: int = 320) -> str:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if len(normalized) <= limit:
+        return normalized
+    return f"{normalized[: limit - 1].rstrip()}…"
+
+
 def _target_tokens(question: str, question_tokens: set[str]) -> set[str]:
     lowered = question.lower()
     match = re.search(r"what\s+(?:is|are)(?:\s+a|\s+an)?\s+(.+)", lowered)
@@ -233,12 +257,18 @@ def _rerank_score(
 class RagService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
-        self.qdrant = QdrantClient(url=settings.qdrant_url, check_compatibility=False)
+        self.client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key and OpenAI else None
+        self.qdrant = QdrantClient(url=settings.qdrant_url, check_compatibility=False) if QdrantClient else None
+
+    @property
+    def qdrant_available(self) -> bool:
+        return self.qdrant is not None and rest is not None
 
     def _embed(self, text: str) -> list[float]:
         if self.settings.embedding_provider == "demo":
             return demo_embed(text)
+        if OpenAI is None:
+            raise RuntimeError("OpenAI package is not installed.")
         if self.client is None:
             raise RuntimeError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER=openai.")
         response = self.client.embeddings.create(
@@ -247,8 +277,8 @@ class RagService:
         )
         return response.data[0].embedding
 
-    def _local_candidates(self, question: str, question_tokens: set[str], route_plan: RoutePlan, per_type_limit: int) -> list[tuple[float, dict[str, object]]]:
-        candidates: list[tuple[float, dict[str, object]]] = []
+    def _local_candidates(self, question: str, question_tokens: set[str], route_plan: RoutePlan, per_type_limit: int) -> list[SearchHit]:
+        candidates: list[SearchHit] = []
         for payload in _load_chunk_payloads(str(self.settings.chunks_path)):
             payload_type = payload.get("doc_type")
             if payload_type not in DOC_TYPES:
@@ -256,21 +286,21 @@ class RagService:
             score = _rerank_score(question, question_tokens, route_plan, payload, 0.0)
             if score <= route_plan.weights.get(payload_type, 0.0):
                 continue
-            candidates.append((score, payload))
+            candidates.append(SearchHit(score=score, payload=payload))
 
-        ranked: list[tuple[float, dict[str, object]]] = []
+        ranked: list[SearchHit] = []
         for doc_type in DOC_TYPES:
-            per_type = [item for item in candidates if item[1]["doc_type"] == doc_type]
-            per_type.sort(key=lambda item: item[0], reverse=True)
+            per_type = [item for item in candidates if item.payload["doc_type"] == doc_type]
+            per_type.sort(key=lambda item: item.score, reverse=True)
             ranked.extend(per_type[:per_type_limit])
         return ranked
 
-    def _comparison_candidates(self, question: str, route_plan: RoutePlan, per_type_limit: int) -> list[tuple[float, dict[str, object]]]:
+    def _comparison_candidates(self, question: str, route_plan: RoutePlan, per_type_limit: int) -> list[SearchHit]:
         terms = _comparison_terms(question)
         if len(terms) != 2:
             return []
 
-        candidates: list[tuple[float, dict[str, object]]] = []
+        candidates: list[SearchHit] = []
         for payload in _load_chunk_payloads(str(self.settings.chunks_path)):
             payload_type = payload.get("doc_type")
             if payload_type not in DOC_TYPES:
@@ -286,19 +316,25 @@ class RagService:
                 term_scores.append(overlap)
             if any(score > 0 for score in term_scores):
                 score = sum(term_scores) + route_plan.weights.get(payload_type, 0.0)
-                candidates.append((score, payload))
+                candidates.append(SearchHit(score=score, payload=payload))
 
-        candidates.sort(key=lambda item: item[0], reverse=True)
+        candidates.sort(key=lambda item: item.score, reverse=True)
         return candidates[:per_type_limit]
 
-    def search(self, question: str, limit: int | None = None) -> tuple[DocType, list[SourceItem]]:
-        route_plan = route_question(question)
-        final_limit = limit or self.settings.top_k
-        candidate_limit = max(final_limit * 5, 20) if self.settings.embedding_provider == "demo" else max(final_limit * 2, 8)
-        vector = self._embed(question)
-        question_tokens = _expand_query_tokens(_tokenize(question))
-        gathered_hits = []
+    def _vector_candidates(
+        self,
+        vector: list[float],
+        question: str,
+        question_tokens: set[str],
+        route_plan: RoutePlan,
+        candidate_limit: int,
+    ) -> list[SearchHit]:
+        if not self.qdrant_available:
+            return []
 
+        assert self.qdrant is not None
+        assert rest is not None
+        gathered_hits: list[SearchHit] = []
         for doc_type in DOC_TYPES:
             response = self.qdrant.query_points(
                 collection_name=self.settings.qdrant_collection,
@@ -312,40 +348,92 @@ class RagService:
             for hit in response.points:
                 payload = hit.payload or {}
                 gathered_hits.append(
-                    (
-                        _rerank_score(question, question_tokens, route_plan, payload, float(hit.score or 0.0)),
-                        payload,
+                    SearchHit(
+                        score=_rerank_score(question, question_tokens, route_plan, payload, float(hit.score or 0.0)),
+                        payload=payload,
                     )
                 )
+        return gathered_hits
+
+    def _dedupe_hits(self, hits: list[SearchHit]) -> list[SearchHit]:
+        hits.sort(key=lambda item: item.score, reverse=True)
+        unique: list[SearchHit] = []
+        seen: set[tuple[str, str]] = set()
+        for hit in hits:
+            payload = hit.payload
+            key = (str(payload["url"]), str(payload["text"])[:120])
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(hit)
+        return unique
+
+    def _resolve_route(self, route_plan: RoutePlan, hits: list[SearchHit]) -> DocType:
+        scores = route_plan.weights.copy()
+        for index, hit in enumerate(hits[:6]):
+            doc_type = str(hit.payload.get("doc_type", route_plan.primary))
+            if doc_type not in scores:
+                continue
+            scores[doc_type] += max(0.0, 2.5 - index) + min(hit.score, 6.0) * 0.15
+        return max(scores, key=scores.get)
+
+    def _hits_to_sources(self, hits: list[SearchHit], limit: int) -> list[SourceItem]:
+        return [
+            SourceItem(
+                title=hit.payload["page_title"],
+                url=hit.payload["url"],
+                doc_type=hit.payload["doc_type"],
+                excerpt=_excerpt(hit.payload["text"]),
+                score=hit.score,
+                heading_path=hit.payload.get("heading_path", []),
+            )
+            for hit in hits[:limit]
+        ]
+
+    def _search_hits(self, question: str, limit: int | None = None) -> tuple[DocType, list[SearchHit]]:
+        route_plan = route_question(question)
+        final_limit = limit or self.settings.top_k
+        candidate_limit = max(final_limit * 5, 20) if self.settings.embedding_provider == "demo" else max(final_limit * 2, 8)
+        vector = self._embed(question)
+        question_tokens = _expand_query_tokens(_tokenize(question))
+        gathered_hits: list[SearchHit] = []
+
+        try:
+            gathered_hits.extend(
+                self._vector_candidates(vector, question, question_tokens, route_plan, candidate_limit=candidate_limit)
+            )
+        except Exception as exc:
+            logger.warning("Qdrant search failed; falling back to local retrieval: %s", exc)
 
         gathered_hits.extend(self._local_candidates(question, question_tokens, route_plan, per_type_limit=candidate_limit))
         gathered_hits.extend(self._comparison_candidates(question, route_plan, per_type_limit=candidate_limit))
+        deduped_hits = self._dedupe_hits(gathered_hits)
+        resolved_route = self._resolve_route(route_plan, deduped_hits) if deduped_hits else route_plan.primary
+        return resolved_route, deduped_hits[:final_limit]
 
-        gathered_hits.sort(key=lambda item: item[0], reverse=True)
-        seen_urls: set[tuple[str, str]] = set()
-        sources = [
-            SourceItem(
-                title=payload["page_title"],
-                url=payload["url"],
-                doc_type=payload["doc_type"],
-                excerpt=payload["text"][:320],
-                score=score,
-                heading_path=payload.get("heading_path", []),
-            )
-            for score, payload in gathered_hits
-            if not ((payload["url"], payload["text"][:120]) in seen_urls or seen_urls.add((payload["url"], payload["text"][:120])))
-        ]
-        return route_plan.primary, sources[:final_limit]
+    def search(self, question: str, limit: int | None = None) -> tuple[DocType, list[SourceItem]]:
+        route, hits = self._search_hits(question, limit=limit)
+        final_limit = limit or self.settings.top_k
+        return route, self._hits_to_sources(hits, final_limit)
 
     def answer(self, question: str) -> tuple[DocType, str, list[SourceItem]]:
-        route, sources = self.search(question)
+        route, hits = self._search_hits(question)
+        sources = self._hits_to_sources(hits, self.settings.top_k)
         if self.settings.chat_provider == "demo":
             return route, demo_answer(question, route, sources), sources
+        if OpenAI is None:
+            raise RuntimeError("OpenAI package is not installed.")
         if self.client is None:
             raise RuntimeError("OPENAI_API_KEY is required when CHAT_PROVIDER=openai.")
         context = "\n\n".join(
-            f"[{index + 1}] {source.title}\nURL: {source.url}\nType: {source.doc_type}\nExcerpt: {source.excerpt}"
-            for index, source in enumerate(sources)
+            (
+                f"[{index + 1}] {hit.payload['page_title']}\n"
+                f"URL: {hit.payload['url']}\n"
+                f"Type: {hit.payload['doc_type']}\n"
+                f"Heading Path: {' > '.join(hit.payload.get('heading_path', []))}\n"
+                f"Content:\n{hit.payload['text']}"
+            )
+            for index, hit in enumerate(hits[: self.settings.top_k])
         )
         prompt = (
             "You are a Kubernetes documentation assistant. "

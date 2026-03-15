@@ -1,0 +1,4 @@
+{"question":"What is a Kubernetes Service?","expected_route":"concepts","expected_url":"https://kubernetes.io/docs/concepts/services-networking/service/"}
+{"question":"What is a ConfigMap?","expected_route":"concepts","expected_url":"https://kubernetes.io/docs/concepts/configuration/configmap/"}
+{"question":"How do I install kubectl on macOS?","expected_route":"tasks","expected_url":"https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/"}
+{"question":"What fields are in Deployment spec?","expected_route":"reference","expected_url":"https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/deployment-v1/"}

@@ -1,6 +1,7 @@
 .env
 .DS_Store
 .venv/
+kubernetes_docs_rag.egg-info/
 __pycache__/
 app/__pycache__/
 app/services/__pycache__/
@@ -8,3 +9,4 @@ scripts/__pycache__/
 data/qdrant/
 data/raw/
 data/processed/chunks.jsonl
+data/processed/crawl_report.json

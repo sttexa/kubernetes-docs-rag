@@ -91,8 +91,8 @@ docker compose -f docker/docker-compose.yml up -d
 5. Scrape and index docs:
 
 ```bash
-python -m scripts.scrape_docs
-python -m scripts.index_docs
+python -m scripts.scrape_docs --max-pages 140 --max-depth 2
+python -m scripts.index_docs --recreate
 ```
 
 6. Run the app:
@@ -115,6 +115,20 @@ uvicorn app.main:app --reload
 ```
 
 This uses the committed sample dataset in `data/sample/sample_chunks.jsonl`, so a fresh clone can run immediately.
+
+### Evaluation and Tests
+
+Run the lightweight retrieval evaluation against the sample dataset:
+
+```bash
+python -m scripts.evaluate_retrieval
+```
+
+Run unit tests:
+
+```bash
+python -m unittest discover -s tests
+```
 
 ### Environment Variables
 
@@ -147,6 +161,7 @@ In demo mode:
 - Runtime data under `data/` is intentionally excluded from git.
 - Local secrets such as `.env` are intentionally excluded from git.
 - This repository is a demo project, not a production-ready RAG service.
+- `scripts/index_docs` and `scripts/index_sample_docs` are non-destructive by default; pass `--recreate` when you explicitly want a fresh collection.
 
 ## 中文说明
 
@@ -236,8 +251,8 @@ docker compose -f docker/docker-compose.yml up -d
 5. 抓取并建立索引：
 
 ```bash
-python -m scripts.scrape_docs
-python -m scripts.index_docs
+python -m scripts.scrape_docs --max-pages 140 --max-depth 2
+python -m scripts.index_docs --recreate
 ```
 
 6. 启动应用：
@@ -260,6 +275,20 @@ uvicorn app.main:app --reload
 ```
 
 这条路径会使用仓库里已经提交的 `data/sample/sample_chunks.jsonl`，因此新用户拿到项目后可以马上启动一个 demo。
+
+### 评测与测试
+
+运行基于 sample 数据集的轻量检索评测：
+
+```bash
+python -m scripts.evaluate_retrieval
+```
+
+运行单元测试：
+
+```bash
+python -m unittest discover -s tests
+```
 
 ### 环境变量
 
@@ -292,3 +321,4 @@ CHAT_PROVIDER=demo
 - `data/` 下的运行数据默认不会提交到仓库
 - `.env` 等本地配置和密钥不会提交到仓库
 - 这是一个示例项目，不是生产级 RAG 系统
+- `scripts/index_docs` 和 `scripts/index_sample_docs` 默认会复用已有 collection；只有显式传入 `--recreate` 时才会重建
